@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Мой бюджет</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <div class="eyebrow">Личный бюджет</div>
+      <h1>Доходы и расходы</h1>
+    </div>
+    <button id="installBtn" class="icon-btn hidden" type="button">Установить</button>
+  </header>
+
+  <main>
+    <section id="dashboard" class="screen active">
+      <div class="filters card">
+        <label>Год
+          <select id="filterYear"></select>
+        </label>
+        <label>Месяц
+          <select id="filterMonth"></select>
+        </label>
+        <label>Категория
+          <select id="filterCategory"></select>
+        </label>
+      </div>
+
+      <div class="metrics">
+        <article class="metric income"><span>Доходы</span><strong id="metricIncome">0 ₽</strong></article>
+        <article class="metric expense"><span>Расходы</span><strong id="metricExpense">0 ₽</strong></article>
+        <article class="metric balance"><span>Баланс</span><strong id="metricBalance">0 ₽</strong></article>
+        <article class="metric"><span>Средний доход</span><strong id="metricAvgIncome">0 ₽</strong></article>
+        <article class="metric"><span>Средний расход</span><strong id="metricAvgExpense">0 ₽</strong></article>
+      </div>
+
+      <section class="card chart-card">
+        <div class="section-title"><h2>По месяцам</h2><span id="periodLabel"></span></div>
+        <canvas id="monthChart" width="800" height="360"></canvas>
+      </section>
+
+      <section class="card chart-card">
+        <div class="section-title"><h2>Расходы по категориям</h2></div>
+        <canvas id="categoryChart" width="800" height="420"></canvas>
+      </section>
+    </section>
+
+    <section id="transactions" class="screen">
+      <div class="segmented">
+        <button class="segment active" data-type="expense" type="button">Расходы</button>
+        <button class="segment" data-type="income" type="button">Доходы</button>
+      </div>
+      <div id="transactionList" class="transaction-list"></div>
+    </section>
+
+    <section id="add" class="screen">
+      <form id="entryForm" class="card form-card">
+        <div class="segmented">
+          <button class="segment active" data-entry-type="expense" type="button">Расход</button>
+          <button class="segment" data-entry-type="income" type="button">Доход</button>
+        </div>
+        <input type="hidden" id="entryType" value="expense" />
+        <label>Дата<input id="entryDate" type="date" required /></label>
+        <label>Сумма<input id="entryAmount" type="number" min="0.01" step="0.01" inputmode="decimal" required /></label>
+        <div id="expenseFields">
+          <label>Категория<select id="entryCategory"></select></label>
+          <label>Подкатегория<select id="entrySubcategory"></select></label>
+        </div>
+        <div id="incomeFields" class="hidden">
+          <label>От кого пришло<input id="entrySource" type="text" placeholder="Например, зарплата" /></label>
+        </div>
+        <label>Подробное описание<textarea id="entryDescription" rows="3" placeholder="Необязательно"></textarea></label>
+        <label>Комментарий<textarea id="entryComment" rows="2" placeholder="Необязательно"></textarea></label>
+        <button class="primary-btn" type="submit">Сохранить</button>
+      </form>
+    </section>
+
+    <section id="settings" class="screen">
+      <section class="card">
+        <h2>Категории</h2>
+        <p class="muted">Переименовывайте категории и подкатегории. Структура сохраняется локально на устройстве.</p>
+        <div id="categoryEditor"></div>
+        <button id="addCategoryBtn" class="secondary-btn" type="button">Добавить категорию</button>
+      </section>
+      <section class="card">
+        <h2>Данные</h2>
+        <div class="button-stack">
+          <button id="exportBtn" class="secondary-btn" type="button">Экспорт JSON</button>
+          <label class="secondary-btn file-label">Импорт JSON<input id="importInput" type="file" accept="application/json" hidden /></label>
+          <button id="clearBtn" class="danger-btn" type="button">Удалить все операции</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="dashboard" type="button">Дашборд</button>
+    <button class="nav-btn" data-screen="transactions" type="button">Операции</button>
+    <button class="nav-btn add-nav" data-screen="add" type="button">＋</button>
+    <button class="nav-btn" data-screen="settings" type="button">Настройки</button>
+  </nav>
+
+  <template id="transactionTemplate">
+    <article class="transaction-item">
+      <div><strong class="tx-title"></strong><span class="tx-meta"></span></div>
+      <div class="tx-right"><strong class="tx-amount"></strong><button class="delete-btn" type="button">Удалить</button></div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
