@@ -28,3 +28,22 @@ body{padding-bottom:112px}
   .nav-btn .nav-icon{font-size:18px}
   .add-nav{width:56px;height:56px;border-radius:19px}
 }
+
+
+/* Debt recurrence and editing */
+.toggle-card{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:11px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#f8fafc;color:var(--text)!important;cursor:pointer}
+.toggle-card input{width:20px!important;height:20px;flex:0 0 auto;margin:1px 0 0;accent-color:var(--accent)}
+.toggle-card span{display:flex;flex-direction:column;gap:3px}.toggle-card strong{font-size:13px}.toggle-card small{font-size:11px;color:var(--muted);line-height:1.35}
+.toggle-card.compact{padding:10px;background:#fff;flex:1;min-width:210px}.monthly-category-toggle{border-color:#bfdbfe;background:#eff6ff!important}
+.debt-category-card{display:grid;grid-template-columns:minmax(160px,1fr) minmax(260px,2fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;background:#f8fafc}
+.debt-category-toggles{display:flex;gap:8px;flex-wrap:wrap}.debt-category-name{font-weight:700}
+#cancelDebtEditBtn{color:#b45309;font-weight:700}
+.debt-item:not(.paid){border-left:4px solid #2563eb}
+@media(max-width:700px){.debt-category-card{grid-template-columns:1fr}.debt-category-toggles{display:grid;grid-template-columns:1fr}.toggle-card.compact{min-width:0}.debt-category-card>.mini-btn{justify-self:start}.debt-actions .mini-btn{flex:1 1 auto}.debt-actions input{max-width:none;flex:1 1 100%}}
+
+
+/* Upcoming debt reminders */
+.upcoming-debt-alert{margin:0 0 12px;padding:13px;border:1px solid #fbbf24;border-radius:15px;background:linear-gradient(135deg,#fffbeb,#fff7ed);box-shadow:0 8px 22px rgba(217,119,6,.10)}
+.upcoming-debt-alert-head{display:flex;align-items:center;gap:10px}.upcoming-debt-alert-head>div{display:flex;flex-direction:column;gap:2px}.upcoming-debt-alert-head strong{font-size:14px;color:#92400e}.upcoming-debt-alert-head small{font-size:11px;color:#a16207}.upcoming-debt-icon{display:grid;place-items:center;width:30px;height:30px;flex:0 0 auto;border-radius:10px;background:#f59e0b;color:#fff;font-weight:900;font-size:18px}
+.upcoming-debt-list{display:grid;gap:7px;margin-top:10px}.upcoming-debt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid rgba(217,119,6,.22)}.upcoming-debt-row>div{min-width:0;display:flex;flex-direction:column;gap:3px}.upcoming-debt-row>div>strong{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.upcoming-debt-row span{font-size:11px;color:#92400e}.upcoming-debt-row>strong{white-space:nowrap;font-size:13px;color:#9a3412}
+@media(max-width:600px){.upcoming-debt-row{align-items:flex-start}.upcoming-debt-row>strong{padding-top:1px}}

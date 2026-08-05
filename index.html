@@ -7,7 +7,7 @@
   <title>Мой бюджет</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=5" />
+  <link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
   <header class="app-header">
@@ -37,6 +37,10 @@
       </div>
       <section id="debtDashboardCard" class="card">
         <div class="section-title"><h2>Долги и обязательства</h2><span>Выбранные категории</span></div>
+        <div id="upcomingDebtAlert" class="upcoming-debt-alert hidden">
+          <div class="upcoming-debt-alert-head"><span class="upcoming-debt-icon" aria-hidden="true">!</span><div><strong>Платежи в ближайшие 3 дня</strong><small id="upcomingDebtSummary"></small></div></div>
+          <div id="upcomingDebtList" class="upcoming-debt-list"></div>
+        </div>
         <div class="debt-summary-grid">
           <div><span>Всего</span><strong id="metricDebtTotal">0 ₽</strong></div>
           <div><span>Отложено / оплачено</span><strong id="metricDebtReserved">0 ₽</strong></div>
@@ -106,14 +110,16 @@
 
     <section id="debts" class="screen">
       <form id="debtForm" class="card form-card">
-        <h2>Добавить долг или обязательство</h2>
+        <input id="debtEditId" type="hidden" />
+        <h2 id="debtFormTitle">Добавить долг или обязательство</h2>
         <label>Название<input id="debtTitle" required placeholder="Например, кредит или аренда" /></label>
         <label>Категория<select id="debtCategory"></select></label>
         <div class="date-grid"><label>Сумма<input id="debtAmount" type="number" min="0.01" step="0.01" required /></label><label>Срок оплаты<input id="debtDueDate" type="date" /></label></div>
         <label>Уже отложено или оплачено частично<input id="debtReserved" type="number" min="0" step="0.01" value="0" /></label>
         <label>Комментарий<textarea id="debtComment" rows="2"></textarea></label>
+        <label class="toggle-card debt-monthly-toggle"><input id="debtMonthly" type="checkbox" /><span><strong>Ежемесячный долг</strong><small>Создавать новую запись каждый месяц</small></span></label>
         <label class="toggle-row"><input id="debtPaid" type="checkbox" /> Полностью оплачено</label>
-        <button class="primary-btn" type="submit">Сохранить долг</button>
+        <div class="form-actions"><button id="saveDebtBtn" class="primary-btn" type="submit">Сохранить долг</button><button id="cancelDebtEditBtn" class="secondary-btn hidden" type="button">Отменить редактирование</button></div>
       </form>
       <section class="card">
         <div class="section-title"><h2>Долги</h2><span id="debtListTotal"></span></div>
@@ -135,7 +141,7 @@
       </section>
       <section class="card">
         <h2>Категории долгов</h2>
-        <p class="muted">Можно выбрать категории для дашборда и отметить их как ежемесячные. Новая запись в ежемесячной категории автоматически повторяется раз в месяц. Удаление не затрагивает старые записи.</p>
+        <p class="muted">Можно выбрать категории, которые отображаются на дашборде. Ежемесячное повторение настраивается отдельно у каждого долга. Удаление категории не затрагивает старые записи.</p>
         <div id="debtCategoryEditor"></div>
         <button id="addDebtCategoryBtn" class="secondary-btn" type="button">Добавить категорию долгов</button>
       </section>
@@ -168,6 +174,6 @@
   </template>
 
   <dialog id="photoDialog"><button id="closePhotoDialog" class="dialog-close" type="button">×</button><img id="dialogPhoto" alt="Фото операции" /></dialog>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
