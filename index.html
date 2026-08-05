@@ -7,7 +7,7 @@
   <title>Мой бюджет</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <header class="app-header">
@@ -151,12 +151,12 @@
     </section>
   </main>
 
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-screen="dashboard" type="button">Дашборд</button>
-    <button class="nav-btn" data-screen="transactions" type="button">Операции</button>
-    <button class="nav-btn" data-screen="debts" type="button">Долги</button>
-    <button class="nav-btn add-nav" data-screen="add" type="button">＋</button>
-    <button class="nav-btn" data-screen="settings" type="button">Настройки</button>
+  <nav class="bottom-nav" aria-label="Основная навигация">
+    <button class="nav-btn active" data-screen="dashboard" type="button"><span class="nav-icon" aria-hidden="true">⌂</span><span>Дашборд</span></button>
+    <button class="nav-btn" data-screen="transactions" type="button"><span class="nav-icon" aria-hidden="true">↕</span><span>Операции</span></button>
+    <button class="nav-btn" data-screen="debts" type="button"><span class="nav-icon" aria-hidden="true">₽</span><span>Долги</span></button>
+    <button class="nav-btn add-nav" data-screen="add" type="button" aria-label="Добавить операцию"><span aria-hidden="true">＋</span></button>
+    <button class="nav-btn" data-screen="settings" type="button"><span class="nav-icon" aria-hidden="true">⚙</span><span>Настройки</span></button>
   </nav>
 
   <template id="transactionTemplate">
@@ -168,6 +168,6 @@
   </template>
 
   <dialog id="photoDialog"><button id="closePhotoDialog" class="dialog-close" type="button">×</button><img id="dialogPhoto" alt="Фото операции" /></dialog>
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

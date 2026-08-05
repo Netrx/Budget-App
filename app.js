@@ -94,9 +94,12 @@ function bindTransactions(){
   $('#clearReportFilters').addEventListener('click',()=>{$('#reportDateFrom').value='';$('#reportDateTo').value='';reportSelectedCategories.clear();renderTransactions()});
 }
 function bindSettings(){
-  $('#addExpenseCategoryBtn').addEventListener('click',()=>{state.expenseCategories.push({id:uid(),name:`Категория ${String(state.expenseCategories.length+1).padStart(2,'0')}`,subcategories:[{id:uid(),name:'Подкатегория 01'}]});saveState();refreshSelectors();renderCategoryEditors()});
-  $('#addIncomeCategoryBtn').addEventListener('click',()=>{state.incomeCategories.push({id:uid(),name:`Доход ${String(state.incomeCategories.length+1).padStart(2,'0')}`});saveState();refreshSelectors();renderCategoryEditors()});
-  $('#addDebtCategoryBtn').addEventListener('click',()=>{state.debtCategories.push({id:uid(),name:`Категория долга ${state.debtCategories.length+1}`,showOnDashboard:false});saveState();refreshSelectors();renderCategoryEditors();renderDashboard()});
+  const addExpenseBtn=$('#addExpenseCategoryBtn');
+  const addIncomeBtn=$('#addIncomeCategoryBtn');
+  const addDebtBtn=$('#addDebtCategoryBtn');
+  if(addExpenseBtn)addExpenseBtn.addEventListener('click',()=>{state.expenseCategories.push({id:uid(),name:`Категория ${String(state.expenseCategories.length+1).padStart(2,'0')}`,subcategories:[{id:uid(),name:'Подкатегория 01'}]});saveState();refreshSelectors();renderCategoryEditors()});
+  if(addIncomeBtn)addIncomeBtn.addEventListener('click',()=>{state.incomeCategories.push({id:uid(),name:`Доход ${String(state.incomeCategories.length+1).padStart(2,'0')}`});saveState();refreshSelectors();renderCategoryEditors()});
+  if(addDebtBtn)addDebtBtn.addEventListener('click',addDebtCategory);
   $('#exportBtn').addEventListener('click',()=>{const backup={...state,version:3,exportedAt:new Date().toISOString(),app:'Мой бюджет'};const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`budget-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
   $('#importInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.transactions))throw new Error();if(!confirm('Импорт заменит текущие данные. Продолжить?'))return;state=normalizeState(data);saveState();reportSelectedCategories.clear();refreshSelectors();renderAll();alert('Данные и фотографии импортированы')}catch(err){alert('Не удалось импортировать файл. Проверьте, что это резервная копия приложения.')}finally{e.target.value=''}});
   $('#clearBtn').addEventListener('click',()=>{if(confirm('Удалить все операции, включая фотографии?')){state.transactions=[];saveState();renderAll()}});
@@ -200,6 +203,20 @@ function renderDebtDashboard(){
   $('#metricDebtTotal').textContent=money(total);$('#metricDebtReserved').textContent=money(reserved);$('#metricDebtRemaining').textContent=money(remaining);const root=$('#dashboardDebtBreakdown');root.innerHTML='';
   const groups=new Map();debts.forEach(d=>{const k=d.categoryName||'Удалённая категория';groups.set(k,(groups.get(k)||0)+debtRemaining(d))});if(!groups.size){root.innerHTML='<p class="muted">Выберите категории долгов в настройках или добавьте записи.</p>';return}[...groups].sort((a,b)=>b[1]-a[1]).forEach(([name,value])=>{const row=document.createElement('div');row.className='debt-breakdown-row';row.innerHTML=`<span>${escapeHtml(name)}</span><strong>${money(value)}</strong>`;root.append(row)})
 }
+
+function addDebtCategory(){
+  if(!Array.isArray(state.debtCategories))state.debtCategories=[];
+  const existingNumbers=state.debtCategories.map(c=>{const m=String(c.name||'').match(/Категория долга\s+(\d+)/i);return m?Number(m[1]):0});
+  const next=Math.max(state.debtCategories.length,...existingNumbers)+1;
+  const category={id:uid(),name:`Категория долга ${next}`,showOnDashboard:false};
+  state.debtCategories.push(category);
+  saveState();
+  refreshSelectors();
+  renderCategoryEditors();
+  renderDashboard();
+  requestAnimationFrame(()=>{const editor=$('#debtCategoryEditor');const input=editor?.querySelector('.category-row:last-child input');if(input){input.focus();input.select();input.scrollIntoView({behavior:'smooth',block:'center'})}});
+}
+
 function renderDebtCategoryEditor(){
   const root=$('#debtCategoryEditor');if(!root)return;root.innerHTML='';state.debtCategories.forEach(cat=>{const row=document.createElement('div');row.className='category-row simple-category';const input=document.createElement('input');input.value=cat.name;input.addEventListener('change',()=>{cat.name=input.value.trim()||cat.name;saveState();refreshSelectors();renderAll()});const label=document.createElement('label');label.className='dashboard-toggle';const check=document.createElement('input');check.type='checkbox';check.checked=cat.showOnDashboard;check.addEventListener('change',()=>{cat.showOnDashboard=check.checked;saveState();renderDashboard()});label.append(check,document.createTextNode('На дашборде'));row.append(input,label,miniButton('Удалить',()=>deleteDebtCategory(cat),true));root.append(row)})
 }
