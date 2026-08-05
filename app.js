@@ -1,7 +1,7 @@
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const DEFAULT_EXPENSE_CATEGORIES=Array.from({length:12},(_,i)=>({id:uid(),name:`Категория ${String(i+1).padStart(2,'0')}`,subcategories:Array.from({length:20},(_,j)=>({id:uid(),name:`Подкатегория ${String(i+1).padStart(2,'0')}.${String(j+1).padStart(2,'0')}`}))}));
 const DEFAULT_INCOME_CATEGORIES=[{id:uid(),name:'Зарплата'},{id:uid(),name:'Заказы'},{id:uid(),name:'Продажи'},{id:uid(),name:'Прочие доходы'}];
-const DEFAULT_DEBT_CATEGORIES=[{id:uid(),name:'Ежемесячные расходы',showOnDashboard:true},{id:uid(),name:'Кредиты',showOnDashboard:true},{id:uid(),name:'Рассрочки',showOnDashboard:false},{id:uid(),name:'Прочие долги',showOnDashboard:false}];
+const DEFAULT_DEBT_CATEGORIES=[{id:uid(),name:'Ежемесячные расходы',showOnDashboard:true,monthly:true},{id:uid(),name:'Кредиты',showOnDashboard:true,monthly:false},{id:uid(),name:'Рассрочки',showOnDashboard:false,monthly:false},{id:uid(),name:'Прочие долги',showOnDashboard:false,monthly:false}];
 const STORE_KEY='budget_mobile_v2';
 const LEGACY_STORE_KEY='budget_mobile_v1';
 let state=loadState();
@@ -40,9 +40,9 @@ function normalizeState(data){
     }
     return tx;
   });
-  const debtCategories=(Array.isArray(raw.debtCategories)&&raw.debtCategories.length?raw.debtCategories:clone(DEFAULT_DEBT_CATEGORIES)).map(c=>typeof c==='string'?{id:uid(),name:c,showOnDashboard:false}:{id:c.id||uid(),name:String(c.name||'Без названия'),showOnDashboard:Boolean(c.showOnDashboard)});
-  const debts=(Array.isArray(raw.debts)?raw.debts:[]).map(d=>{const cat=debtCategories.find(c=>c.id===d.categoryId)||debtCategories.find(c=>c.name===d.categoryName);const amount=Number(d.amount)||0;const reserved=Math.min(amount,Math.max(0,Number(d.reserved)||0));return{...d,id:d.id||uid(),title:String(d.title||'Долг'),amount,reserved,paid:Boolean(d.paid)||reserved>=amount,categoryId:d.categoryId||cat?.id||'',categoryName:d.categoryName||cat?.name||'Удалённая категория',dueDate:d.dueDate||'',comment:d.comment||''}});
-  return{version:3,expenseCategories:normalizedExpenses,incomeCategories,debtCategories,transactions,debts};
+  const debtCategories=(Array.isArray(raw.debtCategories)&&raw.debtCategories.length?raw.debtCategories:clone(DEFAULT_DEBT_CATEGORIES)).map(c=>typeof c==='string'?{id:uid(),name:c,showOnDashboard:false,monthly:c==='Ежемесячные расходы'}:{id:c.id||uid(),name:String(c.name||'Без названия'),showOnDashboard:Boolean(c.showOnDashboard),monthly:c.monthly===undefined?String(c.name||'')==='Ежемесячные расходы':Boolean(c.monthly)});
+  const debts=(Array.isArray(raw.debts)?raw.debts:[]).map(d=>{const cat=debtCategories.find(c=>c.id===d.categoryId)||debtCategories.find(c=>c.name===d.categoryName);const amount=Number(d.amount)||0;const reserved=Math.min(amount,Math.max(0,Number(d.reserved)||0));return{...d,id:d.id||uid(),title:String(d.title||'Долг'),amount,reserved,paid:Boolean(d.paid)||reserved>=amount,categoryId:d.categoryId||cat?.id||'',categoryName:d.categoryName||cat?.name||'Удалённая категория',dueDate:d.dueDate||'',comment:d.comment||'',createdAt:d.createdAt||d.dueDate||localDate(),recurringSeriesId:d.recurringSeriesId||'',recurringMonth:d.recurringMonth||''}});
+  return{version:4,expenseCategories:normalizedExpenses,incomeCategories,debtCategories,transactions,debts};
 }
 function loadState(){
   try{const raw=localStorage.getItem(STORE_KEY)||localStorage.getItem(LEGACY_STORE_KEY);if(raw)return normalizeState(JSON.parse(raw))}catch(e){}
@@ -52,7 +52,7 @@ function loadState(){
 function init(){
   $('#entryDate').value=localDate();
   bindNavigation();bindEntryForm();bindTransactions();bindSettings();bindDashboard();bindDebts();bindPhotoDialog();bindInstall();
-  refreshSelectors();renderAll();saveState();
+  refreshSelectors();generateMonthlyDebts();renderAll();saveState();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
 }
 function bindNavigation(){
@@ -100,7 +100,7 @@ function bindSettings(){
   if(addExpenseBtn)addExpenseBtn.addEventListener('click',()=>{state.expenseCategories.push({id:uid(),name:`Категория ${String(state.expenseCategories.length+1).padStart(2,'0')}`,subcategories:[{id:uid(),name:'Подкатегория 01'}]});saveState();refreshSelectors();renderCategoryEditors()});
   if(addIncomeBtn)addIncomeBtn.addEventListener('click',()=>{state.incomeCategories.push({id:uid(),name:`Доход ${String(state.incomeCategories.length+1).padStart(2,'0')}`});saveState();refreshSelectors();renderCategoryEditors()});
   if(addDebtBtn)addDebtBtn.addEventListener('click',addDebtCategory);
-  $('#exportBtn').addEventListener('click',()=>{const backup={...state,version:3,exportedAt:new Date().toISOString(),app:'Мой бюджет'};const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`budget-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+  $('#exportBtn').addEventListener('click',()=>{const backup={...state,version:4,exportedAt:new Date().toISOString(),app:'Мой бюджет'};const b=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`budget-backup-${localDate()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
   $('#importInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.transactions))throw new Error();if(!confirm('Импорт заменит текущие данные. Продолжить?'))return;state=normalizeState(data);saveState();reportSelectedCategories.clear();refreshSelectors();renderAll();alert('Данные и фотографии импортированы')}catch(err){alert('Не удалось импортировать файл. Проверьте, что это резервная копия приложения.')}finally{e.target.value=''}});
   $('#clearBtn').addEventListener('click',()=>{if(confirm('Удалить все операции, включая фотографии?')){state.transactions=[];saveState();renderAll()}});
 }
@@ -183,10 +183,55 @@ function bindDebts(){
   $('#debtForm').addEventListener('submit',e=>{
     e.preventDefault();const amount=Number($('#debtAmount').value);if(!amount||amount<=0)return;
     const cat=state.debtCategories.find(c=>c.id===$('#debtCategory').value);let reserved=Math.max(0,Number($('#debtReserved').value)||0);reserved=Math.min(amount,reserved);const paid=$('#debtPaid').checked;
-    state.debts.push({id:uid(),title:$('#debtTitle').value.trim()||'Долг',categoryId:cat?.id||'',categoryName:cat?.name||'Без категории',amount,reserved:paid?amount:reserved,paid,dueDate:$('#debtDueDate').value,comment:$('#debtComment').value.trim()});
+    const dueDate=$('#debtDueDate').value;const createdAt=localDate();const recurringSeriesId=cat?.monthly?uid():'';const recurringMonth=cat?.monthly?monthKey(dueDate||createdAt):'';
+    state.debts.push({id:uid(),title:$('#debtTitle').value.trim()||'Долг',categoryId:cat?.id||'',categoryName:cat?.name||'Без категории',amount,reserved:paid?amount:reserved,paid,dueDate,comment:$('#debtComment').value.trim(),createdAt,recurringSeriesId,recurringMonth});
     saveState();e.target.reset();$('#debtReserved').value='0';renderAll();
   });
 }
+
+function monthKey(dateString){
+  const d=dateString?new Date(dateString+'T00:00:00'):new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function addMonthsSafe(dateString,months){
+  const source=dateString?new Date(dateString+'T00:00:00'):new Date();
+  const day=source.getDate();
+  const target=new Date(source.getFullYear(),source.getMonth()+months,1);
+  const lastDay=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();
+  target.setDate(Math.min(day,lastDay));
+  target.setMinutes(target.getMinutes()-target.getTimezoneOffset());
+  return target.toISOString().slice(0,10);
+}
+function monthDistance(fromMonth,toMonth){
+  const [fy,fm]=fromMonth.split('-').map(Number);const [ty,tm]=toMonth.split('-').map(Number);
+  return (ty-fy)*12+(tm-fm);
+}
+function generateMonthlyDebts(){
+  if(!Array.isArray(state.debts)||!Array.isArray(state.debtCategories))return;
+  const monthlyIds=new Set(state.debtCategories.filter(c=>c.monthly).map(c=>c.id));
+  const currentMonth=monthKey(localDate());
+  const seriesSeeds=new Map();
+  state.debts.forEach(d=>{
+    if(!monthlyIds.has(d.categoryId)||!d.recurringSeriesId)return;
+    const key=d.recurringSeriesId;const existing=seriesSeeds.get(key);
+    const dMonth=d.recurringMonth||monthKey(d.dueDate||d.createdAt||localDate());
+    d.recurringMonth=dMonth;
+    if(!existing||dMonth<existing.recurringMonth)seriesSeeds.set(key,d);
+  });
+  seriesSeeds.forEach(seed=>{
+    const startMonth=seed.recurringMonth||monthKey(seed.dueDate||seed.createdAt||localDate());
+    const count=monthDistance(startMonth,currentMonth);
+    if(count<=0)return;
+    for(let i=1;i<=count;i++){
+      const dueDate=seed.dueDate?addMonthsSafe(seed.dueDate,i):'';
+      const targetMonth=monthKey(dueDate||addMonthsSafe((seed.createdAt||localDate()),i));
+      const exists=state.debts.some(d=>d.recurringSeriesId===seed.recurringSeriesId&&d.recurringMonth===targetMonth);
+      if(exists)continue;
+      state.debts.push({...seed,id:uid(),reserved:0,paid:false,dueDate,createdAt:localDate(),recurringMonth:targetMonth});
+    }
+  });
+}
+
 function debtRemaining(d){return Math.max(0,(Number(d.amount)||0)-(d.paid?Number(d.amount)||0:Number(d.reserved)||0))}
 function renderDebts(){
   const root=$('#debtList');if(!root)return;const items=[...state.debts].sort((a,b)=>(a.paid-b.paid)||String(a.dueDate||'9999').localeCompare(String(b.dueDate||'9999')));root.innerHTML='';
@@ -208,7 +253,7 @@ function addDebtCategory(){
   if(!Array.isArray(state.debtCategories))state.debtCategories=[];
   const existingNumbers=state.debtCategories.map(c=>{const m=String(c.name||'').match(/Категория долга\s+(\d+)/i);return m?Number(m[1]):0});
   const next=Math.max(state.debtCategories.length,...existingNumbers)+1;
-  const category={id:uid(),name:`Категория долга ${next}`,showOnDashboard:false};
+  const category={id:uid(),name:`Категория долга ${next}`,showOnDashboard:false,monthly:false};
   state.debtCategories.push(category);
   saveState();
   refreshSelectors();
@@ -218,7 +263,7 @@ function addDebtCategory(){
 }
 
 function renderDebtCategoryEditor(){
-  const root=$('#debtCategoryEditor');if(!root)return;root.innerHTML='';state.debtCategories.forEach(cat=>{const row=document.createElement('div');row.className='category-row simple-category';const input=document.createElement('input');input.value=cat.name;input.addEventListener('change',()=>{cat.name=input.value.trim()||cat.name;saveState();refreshSelectors();renderAll()});const label=document.createElement('label');label.className='dashboard-toggle';const check=document.createElement('input');check.type='checkbox';check.checked=cat.showOnDashboard;check.addEventListener('change',()=>{cat.showOnDashboard=check.checked;saveState();renderDashboard()});label.append(check,document.createTextNode('На дашборде'));row.append(input,label,miniButton('Удалить',()=>deleteDebtCategory(cat),true));root.append(row)})
+  const root=$('#debtCategoryEditor');if(!root)return;root.innerHTML='';state.debtCategories.forEach(cat=>{const row=document.createElement('div');row.className='category-row simple-category';const input=document.createElement('input');input.value=cat.name;input.addEventListener('change',()=>{cat.name=input.value.trim()||cat.name;saveState();refreshSelectors();renderAll()});const dashboardLabel=document.createElement('label');dashboardLabel.className='dashboard-toggle';const dashboardCheck=document.createElement('input');dashboardCheck.type='checkbox';dashboardCheck.checked=cat.showOnDashboard;dashboardCheck.addEventListener('change',()=>{cat.showOnDashboard=dashboardCheck.checked;saveState();renderDashboard()});dashboardLabel.append(dashboardCheck,document.createTextNode('На дашборде'));const monthlyLabel=document.createElement('label');monthlyLabel.className='dashboard-toggle';const monthlyCheck=document.createElement('input');monthlyCheck.type='checkbox';monthlyCheck.checked=Boolean(cat.monthly);monthlyCheck.addEventListener('change',()=>{cat.monthly=monthlyCheck.checked;saveState();generateMonthlyDebts();renderAll()});monthlyLabel.append(monthlyCheck,document.createTextNode('Ежемесячная'));row.append(input,dashboardLabel,monthlyLabel,miniButton('Удалить',()=>deleteDebtCategory(cat),true));root.append(row)})
 }
 function deleteDebtCategory(cat){if(!confirm(`Удалить категорию долга «${cat.name}»? Старые записи сохранят её название.`))return;state.debtCategories=state.debtCategories.filter(c=>c.id!==cat.id);saveState();refreshSelectors();renderAll()}
 

@@ -7,7 +7,7 @@
   <title>Мой бюджет</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=4" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
   <header class="app-header">
@@ -135,7 +135,7 @@
       </section>
       <section class="card">
         <h2>Категории долгов</h2>
-        <p class="muted">Можно выбрать, какие категории показывать на дашборде. Удаление не затрагивает старые записи.</p>
+        <p class="muted">Можно выбрать категории для дашборда и отметить их как ежемесячные. Новая запись в ежемесячной категории автоматически повторяется раз в месяц. Удаление не затрагивает старые записи.</p>
         <div id="debtCategoryEditor"></div>
         <button id="addDebtCategoryBtn" class="secondary-btn" type="button">Добавить категорию долгов</button>
       </section>
@@ -168,6 +168,6 @@
   </template>
 
   <dialog id="photoDialog"><button id="closePhotoDialog" class="dialog-close" type="button">×</button><img id="dialogPhoto" alt="Фото операции" /></dialog>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
