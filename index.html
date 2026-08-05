@@ -35,6 +35,15 @@
         <article class="metric"><span>Средний доход</span><strong id="metricAvgIncome">0 ₽</strong></article>
         <article class="metric"><span>Средний расход</span><strong id="metricAvgExpense">0 ₽</strong></article>
       </div>
+      <section id="debtDashboardCard" class="card">
+        <div class="section-title"><h2>Долги и обязательства</h2><span>Выбранные категории</span></div>
+        <div class="debt-summary-grid">
+          <div><span>Всего</span><strong id="metricDebtTotal">0 ₽</strong></div>
+          <div><span>Отложено / оплачено</span><strong id="metricDebtReserved">0 ₽</strong></div>
+          <div><span>Осталось</span><strong id="metricDebtRemaining">0 ₽</strong></div>
+        </div>
+        <div id="dashboardDebtBreakdown" class="debt-breakdown"></div>
+      </section>
 
       <section class="card chart-card">
         <div class="section-title"><h2>Динамика по месяцам</h2><span id="periodLabel"></span></div>
@@ -94,6 +103,23 @@
       </form>
     </section>
 
+
+    <section id="debts" class="screen">
+      <form id="debtForm" class="card form-card">
+        <h2>Добавить долг или обязательство</h2>
+        <label>Название<input id="debtTitle" required placeholder="Например, кредит или аренда" /></label>
+        <label>Категория<select id="debtCategory"></select></label>
+        <div class="date-grid"><label>Сумма<input id="debtAmount" type="number" min="0.01" step="0.01" required /></label><label>Срок оплаты<input id="debtDueDate" type="date" /></label></div>
+        <label>Уже отложено или оплачено частично<input id="debtReserved" type="number" min="0" step="0.01" value="0" /></label>
+        <label>Комментарий<textarea id="debtComment" rows="2"></textarea></label>
+        <label class="toggle-row"><input id="debtPaid" type="checkbox" /> Полностью оплачено</label>
+        <button class="primary-btn" type="submit">Сохранить долг</button>
+      </form>
+      <section class="card">
+        <div class="section-title"><h2>Долги</h2><span id="debtListTotal"></span></div>
+        <div id="debtList" class="debt-list"></div>
+      </section>
+    </section>
     <section id="settings" class="screen">
       <section class="card">
         <h2>Категории расходов</h2>
@@ -106,6 +132,12 @@
         <p class="muted">Используются для отчётов и графика доходов по категориям.</p>
         <div id="incomeCategoryEditor"></div>
         <button id="addIncomeCategoryBtn" class="secondary-btn" type="button">Добавить категорию доходов</button>
+      </section>
+      <section class="card">
+        <h2>Категории долгов</h2>
+        <p class="muted">Можно выбрать, какие категории показывать на дашборде. Удаление не затрагивает старые записи.</p>
+        <div id="debtCategoryEditor"></div>
+        <button id="addDebtCategoryBtn" class="secondary-btn" type="button">Добавить категорию долгов</button>
       </section>
       <section class="card">
         <h2>Перенос данных</h2>
@@ -122,6 +154,7 @@
   <nav class="bottom-nav">
     <button class="nav-btn active" data-screen="dashboard" type="button">Дашборд</button>
     <button class="nav-btn" data-screen="transactions" type="button">Операции</button>
+    <button class="nav-btn" data-screen="debts" type="button">Долги</button>
     <button class="nav-btn add-nav" data-screen="add" type="button">＋</button>
     <button class="nav-btn" data-screen="settings" type="button">Настройки</button>
   </nav>
